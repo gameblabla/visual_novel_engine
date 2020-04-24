@@ -3,12 +3,13 @@
 #include <time.h>
 #include "SGL.h"
 
-double background_x = 0.0;
+static double background_x = 0.0;
 
 int main( int argc, char* argv[] )
 {
-	clock_t start_t, end_t, total_t;
-	
+	(void) argc;
+	(void) argv;
+
 	time_t begin = time(NULL);
 	
 	Init_Video("Test game", 1280, 720, 0);
@@ -39,7 +40,7 @@ int main( int argc, char* argv[] )
 	time_t end = time(NULL);
 
 	// calculate elapsed time by finding difference (end - begin)
-	printf("Time elpased is %d seconds\n", (end - begin));
+	printf("Time elpased is %ld seconds\n", (end - begin));
 
 	Unload_SFX();
 	Close_Video();

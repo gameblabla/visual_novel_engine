@@ -12,35 +12,35 @@
 #include "SGL.h"
 
 #define NUMBER_OF_IMAGES 1024
-#define MAX_JOYSTICK 16
 #define MAX_SFX 128
 #define NUMBER_OF_FONTS 64
 
+#define MAX_JOYSTICK 16
 #define DEADZONE 4096
 
-static uint32_t current_internal_resolution_width = 0;
-static uint32_t current_internal_resolution_height = 0;
+static int current_internal_resolution_width = 0;
+static int current_internal_resolution_height = 0;
 
 static SDL_Window * window;
 static SDL_Renderer * renderer;
 static SDL_Texture * texture_library_memory[NUMBER_OF_IMAGES];
-static uint_fast32_t sprites_w_[NUMBER_OF_IMAGES];
-static uint_fast32_t sprites_h_[NUMBER_OF_IMAGES];
+static int sprites_w_[NUMBER_OF_IMAGES];
+static int sprites_h_[NUMBER_OF_IMAGES];
 
 static Mix_Music* music;
 static Mix_Chunk* sfx_id[MAX_SFX];
 
 static SDL_GameController *pad[MAX_JOYSTICK];
 static SDL_Joystick *joy[MAX_JOYSTICK];
-static uint32_t instanceID[MAX_JOYSTICK];
+static SDL_JoystickID instanceID[MAX_JOYSTICK];
 
 uint32_t zero_toexit_program = 1;
 
 /* Used to lock the FPS not via Vsync but internally */
-uint32_t lockfps_game = 0;
+static uint32_t lockfps_game = 0;
 
 /* FPS calculation */
-static uint32_t Timer_Read(void) 
+static long Timer_Read(void) 
 {
 	/* Timing. */
 	struct timeval tval;
@@ -54,13 +54,14 @@ static uint32_t frames_FPS_calculation = 0;
 static uint32_t Get_Refresh_rate = 0;
 static double FPS_sleep;
 
-/* Text FONTs */
-static TTF_Font * font[NUMBER_OF_FONTS];
-
+/* Input */
 
 struct player_input Controller_Input;
 
-void msleep(uint32_t milisec)
+/* Text FONTs */
+static TTF_Font * font[NUMBER_OF_FONTS];
+
+static void msleep(double milisec)
 {
 	#ifdef POSIX
 		struct timespec req={0};
@@ -73,14 +74,14 @@ void msleep(uint32_t milisec)
 		while(nanosleep(&req,&req)==-1)
 		continue;
 	#else
-		SDL_Delay(milisec);
+		SDL_Delay((Uint32)milisec);
 	#endif
 }
 
-uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
+static uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
 {
     SDL_DisplayMode Mode;
-    uint32_t DisplayIndex = SDL_GetWindowDisplayIndex(Window);
+    int DisplayIndex = SDL_GetWindowDisplayIndex(Window);
     
     // If we can't find the refresh rate, we'll return this:
     uint32_t DefaultRefreshRate = 60;
@@ -93,10 +94,10 @@ uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
     {
         return DefaultRefreshRate;
     }
-    return Mode.refresh_rate;
+    return (uint32_t)Mode.refresh_rate;
 }
 
-void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, uint_fast32_t screen_mode)
+void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode)
 {
 	uint32_t i;
 	uint32_t real_window_mode;
@@ -150,7 +151,7 @@ void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, ui
 
 uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big)
 {
-	uint32_t font_size;
+	int font_size;
 	
 	/* Hack for Ultra & Wider aspect ratios */
 	/* TODO : Properly fix this according to the current aspect ratio instead of fixed magic numbers */
@@ -164,6 +165,8 @@ uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big
 	}
 	
 	font[a] = TTF_OpenFont(directory, font_size);
+	
+	return 0;
 }
 
 uint_fast8_t Load_Image(uint_fast32_t a, const char* directory)
@@ -193,17 +196,15 @@ uint_fast8_t Load_Image(uint_fast32_t a, const char* directory)
 
 void Draw_Text(uint_fast32_t a, double top_left_x, double top_left_y, const char* text_to_write, uint8_t red, uint8_t green, uint8_t blue)
 {
-	SDL_Color color = { red, green, blue };
+	SDL_Color color = { red, green, blue, 255 };
 	SDL_Surface * surface = TTF_RenderText_Solid(font[a], text_to_write, color);
 	SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, surface);
 	
 	SDL_Rect position;
 	
-	int texW = 0;
-	int texH = 0;
 	SDL_QueryTexture(texture, NULL, NULL, &position.w, &position.h);
-	position.x = current_internal_resolution_width * top_left_x;
-	position.y = current_internal_resolution_height * top_left_y;
+	position.x = (int) (current_internal_resolution_width * top_left_x);
+	position.y = (int) (current_internal_resolution_height * top_left_y);
 	
 	SDL_RenderCopy(renderer, texture, NULL, &position);
 	
@@ -216,7 +217,7 @@ void Close_Font(uint_fast32_t a)
 	TTF_CloseFont(font[a]);
 }
 
-void Close_All_Fonts()
+void Close_All_Fonts(void)
 {
 	uint_fast32_t a;
 	for(a=0;a<NUMBER_OF_FONTS;a++)
@@ -227,19 +228,19 @@ void Close_All_Fonts()
 void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y)
 {
 	SDL_Rect position;
-	position.x = current_internal_resolution_width * top_left_x;
-	position.y = current_internal_resolution_height * top_left_y;
+	position.x = (int) (current_internal_resolution_width * top_left_x);
+	position.y = (int) (current_internal_resolution_height * top_left_y);
 	
 	position.w = sprites_w_[a];
 	position.h = sprites_h_[a];
 	SDL_RenderCopy(renderer, texture_library_memory[a], NULL, &position);
 }
 
-void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, uint_fast32_t w, uint_fast32_t h, uint_fast32_t f)
+void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int f)
 {
 	SDL_Rect position;
-	position.x = current_internal_resolution_width * top_left_x;
-	position.y = current_internal_resolution_height * top_left_y;
+	position.x = (int) (current_internal_resolution_width * top_left_x);
+	position.y = (int) (current_internal_resolution_height * top_left_y);
 	position.w = w;
 	position.h = h;
 	
@@ -253,14 +254,21 @@ void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, 
 }
 
 
-static void Controller_update()
+static void Controller_update(void)
 {
-	uint32_t i;
+	int i;
 	SDL_Event event;
-	
+
+	/* Buttons detected as Released must be reset to 0 */
 	for(i=0;i<MAX_BUTTONS;i++)
 	{
 		if (Controller_Input.buttons[i] == 3) Controller_Input.buttons[i] = 0;
+	}
+	
+	/* Due to the nature of the dpad*/
+	for(i=0;i<4;i++)
+	{
+		if (Controller_Input.dpad[i] == 3) Controller_Input.dpad[i] = 0;
 	}
 	
 	while (SDL_PollEvent(&event))
@@ -280,26 +288,56 @@ static void Controller_update()
 				{
 					if (event.caxis.value < -DEADZONE)
 					{
-						Controller_Input.dpad[0] = 1;
-						Controller_Input.dpad[1] = 0;
+						if (Controller_Input.dpad[0] != 2)
+						{
+							Controller_Input.dpad[0] = 1;
+							if (Controller_Input.dpad[1] == 2) Controller_Input.dpad[1] = 3;
+							else Controller_Input.dpad[1] = 0;
+						}
 					}
 					else if (event.caxis.value > DEADZONE)
 					{
-						Controller_Input.dpad[0] = 0;
-						Controller_Input.dpad[1] = 1;
+						if (Controller_Input.dpad[1] != 2)
+						{
+							if (Controller_Input.dpad[0] == 2) Controller_Input.dpad[0] = 3;
+							else Controller_Input.dpad[0] = 0;
+							Controller_Input.dpad[1] = 1;
+						}
+					}
+					else
+					{
+						if (Controller_Input.dpad[1] == 2) Controller_Input.dpad[1] = 3;
+						else Controller_Input.dpad[1] = 0;
+						if (Controller_Input.dpad[0] == 2) Controller_Input.dpad[0] = 3;
+						else Controller_Input.dpad[0] = 0;
 					}
 				}
 				else if (event.caxis.axis == 1)
 				{
 					if (event.caxis.value < -DEADZONE)
 					{
-						Controller_Input.dpad[2] = 1;
-						Controller_Input.dpad[3] = 0;
+						if (Controller_Input.dpad[2] != 2)
+						{
+							Controller_Input.dpad[2] = 1;
+							if (Controller_Input.dpad[3] == 2) Controller_Input.dpad[3] = 3;
+							else Controller_Input.dpad[3] = 0;
+						}
 					}
 					else if (event.caxis.value > DEADZONE)
 					{
-						Controller_Input.dpad[2] = 0;
-						Controller_Input.dpad[3] = 1;
+						if (Controller_Input.dpad[3] != 2)
+						{
+							if (Controller_Input.dpad[2] == 2) Controller_Input.dpad[2] = 3;
+							else Controller_Input.dpad[2] = 0;
+							Controller_Input.dpad[3] = 1;
+						}
+					}
+					else
+					{
+						if (Controller_Input.dpad[3] == 2) Controller_Input.dpad[3] = 3;
+						else Controller_Input.dpad[3] = 0;
+						if (Controller_Input.dpad[2] == 2) Controller_Input.dpad[2] = 3;
+						else Controller_Input.dpad[2] = 0;
 					}
 				}
 				break;
@@ -344,11 +382,24 @@ static void Controller_update()
 		}
 	}
 	
+	for(i=0;i<4;i++)
+	{
+		if (Controller_Input.dpad[i] == 1)
+		{
+			Controller_Input.timer_dpad[i]++;
+			if (Controller_Input.timer_dpad[i] > 1)
+			{
+				Controller_Input.dpad[i] = 2;
+				Controller_Input.timer_dpad[i] = 0;
+			}
+		}
+	}
+	
 }
 
-void Sync_video()
+void Sync_video(void)
 {
-	uint32_t start;
+	uint32_t start = 0;
 	if (lockfps_game) start = SDL_GetTicks();
 	SDL_RenderPresent(renderer);
 	/* This is used to sleep and lock the FPS */
@@ -376,15 +427,15 @@ void Sync_video()
 
 void Move_Position_X(double* x, double xVel)
 {
-	*x += xVel * ( 1.0f/Get_Refresh_rate );
+	*x += xVel * ( 1.0/Get_Refresh_rate );
 }
 
 void Move_Position_Y(double* y, double yVel)
 {
-	*y += yVel * ( 1.0f/Get_Refresh_rate );
+	*y += yVel * ( 1.0/Get_Refresh_rate );
 }
 
-void Close_Video()
+void Close_Video(void)
 {
 	uint32_t i;
 	for (i=0;i<NUMBER_OF_IMAGES;i++) 
@@ -395,13 +446,13 @@ void Close_Video()
 	SDL_DestroyWindow(window);
 }
 
-void Init_sound()
+void Init_sound(void)
 {
 	Mix_OpenAudio(48000,MIX_DEFAULT_FORMAT,2,2048);
 	Mix_AllocateChannels(32);
 }
 		
-void Clean_Music()
+void Clean_Music(void)
 {
 	if (music)
 	{
