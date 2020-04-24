@@ -1,16 +1,15 @@
-CC = gcc
+CC = clang
 
-CFLAGS = -O2 -fno-omit-frame-pointer -std=gnu99 -I/usr/include/SDL2 -DHOMEDIR -Isoil
+CFLAGS = -Weverything -Werror -O0 -g -std=gnu99 -I/usr/include/SDL2
 LDFLAGS = -lc -lgcc -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
 
-DEFINES = -Wall
 OUTPUT = example.elf
 
 SOURCES = main.c SGL.c
 OBJS = ${SOURCES:.c=.o}
 
 ${OUTPUT}:${OBJS}
-	${CC} -o ${OUTPUT} ${OBJS} ${CFLAGS} ${LDFLAGS} ${DEFINES} 
+	${CC} ${CFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS}
 	
 clean:
 	rm *.o
