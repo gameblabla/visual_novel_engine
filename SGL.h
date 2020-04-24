@@ -10,6 +10,38 @@
 
 extern uint32_t zero_toexit_program;
 
+#define MAX_BUTTONS 128
+struct player_input
+{
+	uint_fast8_t dpad[4];
+	uint_fast8_t buttons[MAX_BUTTONS];
+	/* Don't use timer_buttons in your code !*/
+	uint_fast8_t timer_buttons[MAX_BUTTONS];
+};
+extern struct player_input Controller_Input;
+
+// Controller_Input.buttons[X] where X is...
+
+#define CROSS_BUTTON 0
+#define CIRCLE_BUTTON 1
+#define SQUARE_BUTTON 2
+#define TRIANGLE_BUTTON 3
+
+#define SELECT_BUTTON 4
+#define START_BUTTON 6
+
+#define L3_BUTTON 7
+#define R3_BUTTON 8
+
+#define L1_BUTTON 9
+#define R1_BUTTON 10
+
+// State of buttons
+#define UNPRESSED 0
+#define PRESSED 1
+#define HELD 2
+#define RELEASED 3
+
 /* Video */
 extern void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, uint_fast32_t screen_mode);
 extern uint_fast8_t Load_Image(uint_fast32_t a, const char* directory);
@@ -29,9 +61,6 @@ extern void Close_All_Fonts();
 extern void Move_Position_X(double* x, double xVel);
 extern void Move_Position_Y(double* y, double yVel);
 
-/* Input */
-
-extern void Controller_update();
 
 /* Sound playback */
 

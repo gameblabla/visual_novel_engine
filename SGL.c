@@ -9,26 +9,30 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+#include "SGL.h"
+
 #define NUMBER_OF_IMAGES 1024
 #define MAX_JOYSTICK 16
 #define MAX_SFX 128
 #define NUMBER_OF_FONTS 64
 
+#define DEADZONE 4096
+
 static uint32_t current_internal_resolution_width = 0;
 static uint32_t current_internal_resolution_height = 0;
 
-SDL_Window * window;
-SDL_Renderer * renderer;
-SDL_Texture * texture_library_memory[NUMBER_OF_IMAGES];
-uint_fast32_t sprites_w_[NUMBER_OF_IMAGES];
-uint_fast32_t sprites_h_[NUMBER_OF_IMAGES];
+static SDL_Window * window;
+static SDL_Renderer * renderer;
+static SDL_Texture * texture_library_memory[NUMBER_OF_IMAGES];
+static uint_fast32_t sprites_w_[NUMBER_OF_IMAGES];
+static uint_fast32_t sprites_h_[NUMBER_OF_IMAGES];
 
-Mix_Music* music;
-Mix_Chunk* sfx_id[MAX_SFX];
+static Mix_Music* music;
+static Mix_Chunk* sfx_id[MAX_SFX];
 
-SDL_GameController *pad[MAX_JOYSTICK];
-SDL_Joystick *joy[MAX_JOYSTICK];
-uint32_t instanceID[MAX_JOYSTICK];
+static SDL_GameController *pad[MAX_JOYSTICK];
+static SDL_Joystick *joy[MAX_JOYSTICK];
+static uint32_t instanceID[MAX_JOYSTICK];
 
 uint32_t zero_toexit_program = 1;
 
@@ -47,12 +51,14 @@ static long lastTick = 0, newTick;
 static uint32_t frames_FPS_calculation = 0;
 
 /* Used to detect and lock the framerate */
-uint32_t Get_Refresh_rate = 0;
-double FPS_sleep;
+static uint32_t Get_Refresh_rate = 0;
+static double FPS_sleep;
 
 /* Text FONTs */
-TTF_Font * font[NUMBER_OF_FONTS];
+static TTF_Font * font[NUMBER_OF_FONTS];
 
+
+struct player_input Controller_Input;
 
 void msleep(uint32_t milisec)
 {
@@ -92,7 +98,11 @@ uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
 
 void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, uint_fast32_t screen_mode)
 {
+	uint32_t i;
 	uint32_t real_window_mode;
+	
+	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO);
+	
 	switch(screen_mode)
 	{
 		case 0:
@@ -111,9 +121,9 @@ void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, ui
 	
 	Get_Refresh_rate = SDLGetWindowRefreshRate(window);
 	FPS_sleep = 1000.0 / Get_Refresh_rate;
-	printf("Get_Refresh_rate %d\n", Get_Refresh_rate);
+	printf("Refresh rate is %d Hz\n", Get_Refresh_rate);
 	
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
 	SDL_RenderSetLogicalSize(renderer, width, height);
 	
 	/* Clear everything on screen */
@@ -125,6 +135,17 @@ void Init_Video(const char* title, uint_fast32_t width, uint_fast32_t height, ui
 	current_internal_resolution_height = height;
 	
 	TTF_Init();
+	
+	/* Make sure uninitialized values are set to 0 */
+	
+	for(i=0;i<MAX_BUTTONS;i++)
+	{
+		Controller_Input.buttons[i] = 0;
+		Controller_Input.timer_buttons[i] = 0;
+	}
+	
+	for(i=0;i<4;i++)
+		Controller_Input.dpad[i] = 0;
 }
 
 uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big)
@@ -231,6 +252,100 @@ void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, 
 	SDL_RenderCopy(renderer, texture_library_memory[a], &frame, &position);
 }
 
+
+static void Controller_update()
+{
+	uint32_t i;
+	SDL_Event event;
+	
+	for(i=0;i<MAX_BUTTONS;i++)
+	{
+		if (Controller_Input.buttons[i] == 3) Controller_Input.buttons[i] = 0;
+	}
+	
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+			case SDL_QUIT:
+			{
+				zero_toexit_program = 0;
+				break;
+			}
+			case SDL_CONTROLLERAXISMOTION:
+			{
+				//printf("Axis id %d, %d\n", event.caxis.axis, event.caxis.value);
+				/* TODO : Improve DPAD emulation code */
+				if (event.caxis.axis == 0)
+				{
+					if (event.caxis.value < -DEADZONE)
+					{
+						Controller_Input.dpad[0] = 1;
+						Controller_Input.dpad[1] = 0;
+					}
+					else if (event.caxis.value > DEADZONE)
+					{
+						Controller_Input.dpad[0] = 0;
+						Controller_Input.dpad[1] = 1;
+					}
+				}
+				else if (event.caxis.axis == 1)
+				{
+					if (event.caxis.value < -DEADZONE)
+					{
+						Controller_Input.dpad[2] = 1;
+						Controller_Input.dpad[3] = 0;
+					}
+					else if (event.caxis.value > DEADZONE)
+					{
+						Controller_Input.dpad[2] = 0;
+						Controller_Input.dpad[3] = 1;
+					}
+				}
+				break;
+			}
+			case SDL_CONTROLLERBUTTONDOWN:
+				//printf("event.cbutton.button %d\n", event.cbutton.button);
+				if (Controller_Input.buttons[event.cbutton.button] != 2)
+				Controller_Input.buttons[event.cbutton.button] = 1;
+			break;
+			case SDL_CONTROLLERBUTTONUP:
+				Controller_Input.buttons[event.cbutton.button] = 3;
+			break;
+                
+			case SDL_CONTROLLERDEVICEADDED:
+			for(i=0;i<MAX_JOYSTICK;i++)
+			{
+				if ( SDL_IsGameController(i)) 
+				{
+					pad[i] = SDL_GameControllerOpen(i);
+					if (pad[i]) 
+					{
+						joy[i] = SDL_GameControllerGetJoystick( pad[i] );
+						instanceID[i] = SDL_JoystickInstanceID( joy[i] );
+					}
+				}
+			}
+			break;
+
+		}
+	}	
+
+	for(i=0;i<MAX_BUTTONS;i++)
+	{
+		if (Controller_Input.buttons[i] == 1)
+		{
+			Controller_Input.timer_buttons[i]++;
+			if (Controller_Input.timer_buttons[i] > 1)
+			{
+				Controller_Input.buttons[i] = 2;
+				Controller_Input.timer_buttons[i] = 0;
+			}
+		}
+	}
+	
+}
+
 void Sync_video()
 {
 	uint32_t start;
@@ -255,6 +370,8 @@ void Sync_video()
 		frames_FPS_calculation = 0;
 		lastTick = newTick;
 	}
+	
+	Controller_update();
 }
 
 void Move_Position_X(double* x, double xVel)
@@ -276,51 +393,6 @@ void Close_Video()
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-}
-
-void Controller_update()
-{
-	uint32_t i;
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
-	{
-		switch (event.type)
-		{
-			case SDL_QUIT:
-			{
-				zero_toexit_program = 0;
-				break;
-			}
-			case SDL_CONTROLLERAXISMOTION:
-			{
-				printf("Axis %d\n", event.caxis);
-				break;
-			}
-			case SDL_CONTROLLERBUTTONDOWN:
-				printf("sdlEvent.cbutton Down %d\n", event.button);
-			break;
-			case SDL_CONTROLLERBUTTONUP:
-				printf("sdlEvent.cbutton Up %d\n", event.button);
-			break;
-                
-			case SDL_CONTROLLERDEVICEADDED:
-			for(i=0;i<MAX_JOYSTICK;i++)
-			{
-				if ( SDL_IsGameController(i)) 
-				{
-					pad[i] = SDL_GameControllerOpen(i);
-					printf("LOL\n");
-					if (pad[i]) 
-					{
-						joy[i] = SDL_GameControllerGetJoystick( pad[i] );
-						instanceID[i] = SDL_JoystickInstanceID( joy[i] );
-					}
-				}
-			}
-			break;
-
-		}
-	}	
 }
 
 void Init_sound()

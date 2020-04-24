@@ -12,13 +12,15 @@ int main( int argc, char* argv[] )
 	time_t begin = time(NULL);
 	
 	Init_Video("Test game", 1280, 720, 0);
+	Init_sound();
+	
 	Load_Image(0, "assets/background.png");
 	
 	Load_Text_Font(0, "assets/font.ttf", SMALL_FONT);
 	
     while(zero_toexit_program) 
     {
-		Controller_update();
+		if (Controller_Input.buttons[CROSS_BUTTON] == PRESSED) zero_toexit_program = 0;
 		
 		//Move_Position_X(&background_x, 0.1);
 		
