@@ -227,7 +227,7 @@ void Close_All_Fonts(void)
 }
 
 
-void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y)
+void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y, uint8_t alpha)
 {
 	SDL_Rect position;
 	position.x = (int) (current_internal_resolution_width * top_left_x);
@@ -235,10 +235,12 @@ void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y)
 	
 	position.w = sprites_w_[a];
 	position.h = sprites_h_[a];
+	
+	SDL_SetTextureAlphaMod( texture_library_memory[a], alpha );
 	SDL_RenderCopy(renderer, texture_library_memory[a], NULL, &position);
 }
 
-void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds)
+void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha)
 {
 	SDL_Rect position;
 	SDL_Rect frame;
@@ -271,6 +273,7 @@ void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, 
 	frame.w = w;
 	frame.h = h;
 	
+	SDL_SetTextureAlphaMod( texture_library_memory[a], alpha );
 	SDL_RenderCopy(renderer, texture_library_memory[a], &frame, &position);
 }
 

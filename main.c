@@ -27,9 +27,9 @@ int main( int argc, char* argv[] )
 		
 		//Move_Position_X(&background_x, 0.1);
 		
-		Put_image_top_left(0, background_x, 0);
+		Put_image_top_left(0, background_x, 0, 255);
 		
-		Put_sprite_top_left(1, 0.5, 0.5, 32, 32, 0, 9, 1, 0.25);
+		Put_sprite_top_left(1, 0.5, 0.5, 32, 32, 0, 9, 1, 0.25, 255);
 		
 		Draw_Text(0, 0.1, 0.72, "Random character : ", 255, 255, 255);
 		Draw_Text(0, 0.1, 0.8, "I love love ! Fuck you all boys ~~ !", 255, 255, 255);
