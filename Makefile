@@ -5,7 +5,7 @@ LDFLAGS = -lc -lgcc -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
 
 OUTPUT = example.elf
 
-SOURCES = main.c SGL.c
+SOURCES = main.c SGL.c array.c
 OBJS = ${SOURCES:.c=.o}
 
 ${OUTPUT}:${OBJS}
