@@ -229,6 +229,8 @@ void Close_All_Fonts(void)
 
 void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y, uint8_t alpha)
 {
+	if (alpha < 1) return;
+	
 	SDL_Rect position;
 	position.x = (int) (current_internal_resolution_width * top_left_x);
 	position.y = (int) (current_internal_resolution_height * top_left_y);
@@ -242,6 +244,8 @@ void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y, u
 
 void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha)
 {
+	if (alpha < 1) return;
+
 	SDL_Rect position;
 	SDL_Rect frame;
 	
