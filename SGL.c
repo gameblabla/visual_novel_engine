@@ -26,6 +26,7 @@ static SDL_Renderer * renderer;
 static SDL_Texture * texture_library_memory[NUMBER_OF_IMAGES];
 static int sprites_w_[NUMBER_OF_IMAGES];
 static int sprites_h_[NUMBER_OF_IMAGES];
+static double sprites_current_frame_[NUMBER_OF_IMAGES];
 
 static Mix_Music* music;
 static Mix_Chunk* sfx_id[MAX_SFX];
@@ -183,6 +184,7 @@ uint_fast8_t Load_Image(uint_fast32_t a, const char* directory)
 	
 	sprites_w_[a] = tmp->w;
 	sprites_h_[a] = tmp->h;
+	sprites_current_frame_[a] = 0;
 
 	SDL_SetColorKey(tmp, 1, SDL_MapRGB(tmp->format, 255, 0, 255));
 	SDL_SetSurfaceRLE(tmp, 1);
@@ -236,16 +238,35 @@ void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y)
 	SDL_RenderCopy(renderer, texture_library_memory[a], NULL, &position);
 }
 
-void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int f)
+void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds)
 {
 	SDL_Rect position;
+	SDL_Rect frame;
+	
 	position.x = (int) (current_internal_resolution_width * top_left_x);
 	position.y = (int) (current_internal_resolution_height * top_left_y);
 	position.w = w;
 	position.h = h;
 	
-	SDL_Rect frame;
-	frame.x = f*w;
+	if (!(sprites_current_frame_[a] >= (double)frame_end && loop == 0))
+	{
+		if (sprites_current_frame_[a] < frame_end)
+		{
+			/* 
+			 * This function is executed every frame of the display refresh rate hence the division by 1.
+			 * ( (Get_Refresh_rate * seconds) / (double)(frame_end-frame_start)) is the number of frame required to update each frame of the sprite
+			*/
+			sprites_current_frame_[a] += 1 / ( (Get_Refresh_rate * seconds) / (double)(frame_end-frame_start));
+		}
+		
+		if ((sprites_current_frame_[a] >= (double)frame_end && loop == 1) || (sprites_current_frame_[a] < 0.0 && sprites_current_frame_[a] == 0.0))
+		{
+			sprites_current_frame_[a] = (double)frame_start;
+		}
+	}
+
+	frame.x = (int)(sprites_current_frame_[a])*(w);
+	
 	frame.y = 0;
 	frame.w = w;
 	frame.h = h;
@@ -253,6 +274,23 @@ void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, 
 	SDL_RenderCopy(renderer, texture_library_memory[a], &frame, &position);
 }
 
+void Reset_Sprite_Frame_Counter(uint_fast32_t a)
+{
+	sprites_current_frame_[a] = 0;
+}
+
+static uint_fast8_t Set_DPAD(uint_fast8_t value)
+{
+	switch(value)
+	{
+		case 0:
+			return PRESSED;
+		case 2:
+			return RELEASED;
+		default:
+			return UNPRESSED;
+	}
+}
 
 static void Controller_update(void)
 {
@@ -280,6 +318,58 @@ static void Controller_update(void)
 				zero_toexit_program = 0;
 				break;
 			}
+			case SDL_KEYDOWN:
+				switch(event.key.keysym.scancode)
+				{
+					case SDL_SCANCODE_UP:
+					Controller_Input.dpad[0] = Set_DPAD(Controller_Input.dpad[0]);
+					break;
+					case SDL_SCANCODE_DOWN:
+					Controller_Input.dpad[1] = Set_DPAD(Controller_Input.dpad[1]);
+					break;
+					case SDL_SCANCODE_LEFT:
+					Controller_Input.dpad[2] = Set_DPAD(Controller_Input.dpad[2]);
+					break;
+					case SDL_SCANCODE_RIGHT:
+					Controller_Input.dpad[3] = Set_DPAD(Controller_Input.dpad[3]);
+					break;
+					case SDL_SCANCODE_SPACE:
+					case SDL_SCANCODE_KP_SPACE:
+						if (Controller_Input.buttons[CROSS_BUTTON] != HELD)
+						Controller_Input.buttons[CROSS_BUTTON] = PRESSED;
+					break;
+					case SDL_SCANCODE_ESCAPE:
+						zero_toexit_program = 0;
+					break;
+					default:
+					break;
+				}
+			break;
+
+			case SDL_KEYUP:
+				switch(event.key.keysym.scancode)
+				{
+					case SDL_SCANCODE_UP:
+					Controller_Input.dpad[0] = RELEASED;
+					break;
+					case SDL_SCANCODE_DOWN:
+					Controller_Input.dpad[1] = RELEASED;
+					break;
+					case SDL_SCANCODE_LEFT:
+					Controller_Input.dpad[2] = RELEASED;
+					break;
+					case SDL_SCANCODE_RIGHT:
+					Controller_Input.dpad[3] = RELEASED;
+					break;
+					case SDL_SCANCODE_SPACE:
+					case SDL_SCANCODE_KP_SPACE:
+						Controller_Input.buttons[CROSS_BUTTON] = RELEASED;
+					break;
+					default:
+					break;
+				}
+			break;
+
 			case SDL_CONTROLLERAXISMOTION:
 			{
 				//printf("Axis id %d, %d\n", event.caxis.axis, event.caxis.value);
@@ -288,67 +378,67 @@ static void Controller_update(void)
 				{
 					if (event.caxis.value < -DEADZONE)
 					{
-						if (Controller_Input.dpad[0] != 2)
+						if (Controller_Input.dpad[UP_DPAD] != HELD)
 						{
-							Controller_Input.dpad[0] = 1;
-							if (Controller_Input.dpad[1] == 2) Controller_Input.dpad[1] = 3;
-							else Controller_Input.dpad[1] = 0;
+							Controller_Input.dpad[UP_DPAD] = PRESSED;
+							if (Controller_Input.dpad[DOWN_DPAD] == HELD) Controller_Input.dpad[DOWN_DPAD] = RELEASED;
+							else Controller_Input.dpad[DOWN_DPAD] = UNPRESSED;
 						}
 					}
 					else if (event.caxis.value > DEADZONE)
 					{
-						if (Controller_Input.dpad[1] != 2)
+						if (Controller_Input.dpad[DOWN_DPAD] != HELD)
 						{
-							if (Controller_Input.dpad[0] == 2) Controller_Input.dpad[0] = 3;
-							else Controller_Input.dpad[0] = 0;
-							Controller_Input.dpad[1] = 1;
+							if (Controller_Input.dpad[UP_DPAD] == HELD) Controller_Input.dpad[UP_DPAD] = RELEASED;
+							else Controller_Input.dpad[UP_DPAD] = UNPRESSED;
+							Controller_Input.dpad[DOWN_DPAD] = PRESSED;
 						}
 					}
 					else
 					{
-						if (Controller_Input.dpad[1] == 2) Controller_Input.dpad[1] = 3;
-						else Controller_Input.dpad[1] = 0;
-						if (Controller_Input.dpad[0] == 2) Controller_Input.dpad[0] = 3;
-						else Controller_Input.dpad[0] = 0;
+						if (Controller_Input.dpad[DOWN_DPAD] == 2) Controller_Input.dpad[DOWN_DPAD] = RELEASED;
+						else Controller_Input.dpad[DOWN_DPAD] = UNPRESSED;
+						if (Controller_Input.dpad[UP_DPAD] == 2) Controller_Input.dpad[UP_DPAD] = RELEASED;
+						else Controller_Input.dpad[UP_DPAD] = UNPRESSED;
 					}
 				}
 				else if (event.caxis.axis == 1)
 				{
 					if (event.caxis.value < -DEADZONE)
 					{
-						if (Controller_Input.dpad[2] != 2)
+						if (Controller_Input.dpad[LEFT_DPAD] != HELD)
 						{
-							Controller_Input.dpad[2] = 1;
-							if (Controller_Input.dpad[3] == 2) Controller_Input.dpad[3] = 3;
-							else Controller_Input.dpad[3] = 0;
+							Controller_Input.dpad[LEFT_DPAD] = PRESSED;
+							if (Controller_Input.dpad[RIGHT_DPAD] == HELD) Controller_Input.dpad[LEFT_DPAD] = RELEASED;
+							else Controller_Input.dpad[RIGHT_DPAD] = UNPRESSED;
 						}
 					}
 					else if (event.caxis.value > DEADZONE)
 					{
-						if (Controller_Input.dpad[3] != 2)
+						if (Controller_Input.dpad[RIGHT_DPAD] != HELD)
 						{
-							if (Controller_Input.dpad[2] == 2) Controller_Input.dpad[2] = 3;
-							else Controller_Input.dpad[2] = 0;
-							Controller_Input.dpad[3] = 1;
+							if (Controller_Input.dpad[LEFT_DPAD] == HELD) Controller_Input.dpad[LEFT_DPAD] = RELEASED;
+							else Controller_Input.dpad[LEFT_DPAD] = UNPRESSED;
+							Controller_Input.dpad[RIGHT_DPAD] = PRESSED;
 						}
 					}
 					else
 					{
-						if (Controller_Input.dpad[3] == 2) Controller_Input.dpad[3] = 3;
-						else Controller_Input.dpad[3] = 0;
-						if (Controller_Input.dpad[2] == 2) Controller_Input.dpad[2] = 3;
-						else Controller_Input.dpad[2] = 0;
+						if (Controller_Input.dpad[RIGHT_DPAD] == HELD) Controller_Input.dpad[RIGHT_DPAD] = RELEASED;
+						else Controller_Input.dpad[RIGHT_DPAD] = UNPRESSED;
+						if (Controller_Input.dpad[LEFT_DPAD] == HELD) Controller_Input.dpad[LEFT_DPAD] = RELEASED;
+						else Controller_Input.dpad[LEFT_DPAD] = UNPRESSED;
 					}
 				}
 				break;
 			}
 			case SDL_CONTROLLERBUTTONDOWN:
 				//printf("event.cbutton.button %d\n", event.cbutton.button);
-				if (Controller_Input.buttons[event.cbutton.button] != 2)
-				Controller_Input.buttons[event.cbutton.button] = 1;
+				if (Controller_Input.buttons[event.cbutton.button] != HELD)
+				Controller_Input.buttons[event.cbutton.button] = PRESSED;
 			break;
 			case SDL_CONTROLLERBUTTONUP:
-				Controller_Input.buttons[event.cbutton.button] = 3;
+				Controller_Input.buttons[event.cbutton.button] = RELEASED;
 			break;
                 
 			case SDL_CONTROLLERDEVICEADDED:

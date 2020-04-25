@@ -16,16 +16,20 @@ int main( int argc, char* argv[] )
 	Init_sound();
 	
 	Load_Image(0, "assets/background.png");
+	Load_Image(1, "assets/numbers.png");
 	
 	Load_Text_Font(0, "assets/font.ttf", SMALL_FONT);
 	
     while(zero_toexit_program) 
     {
 		if (Controller_Input.buttons[CROSS_BUTTON] == PRESSED) zero_toexit_program = 0;
+		if (Controller_Input.dpad[UP_DPAD] == RELEASED) zero_toexit_program = 0;
 		
 		//Move_Position_X(&background_x, 0.1);
 		
 		Put_image_top_left(0, background_x, 0);
+		
+		Put_sprite_top_left(1, 0.5, 0.5, 32, 32, 0, 9, 1, 0.25);
 		
 		Draw_Text(0, 0.1, 0.72, "Random character : ", 255, 255, 255);
 		Draw_Text(0, 0.1, 0.8, "I love love ! Fuck you all boys ~~ !", 255, 255, 255);

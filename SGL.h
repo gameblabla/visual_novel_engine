@@ -22,6 +22,12 @@ struct player_input
 };
 extern struct player_input Controller_Input;
 
+// .dpad[X] where X is...
+#define UP_DPAD 0
+#define DOWN_DPAD 1
+#define LEFT_DPAD 2
+#define RIGHT_DPAD 3
+
 // Controller_Input.buttons[X] where X is...
 
 #define CROSS_BUTTON 0
@@ -48,7 +54,11 @@ extern struct player_input Controller_Input;
 extern void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode);
 extern uint_fast8_t Load_Image(uint_fast32_t a, const char* directory);
 extern void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y);
-extern void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int f);
+extern void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds);
+
+/* Use in case you set the loop to 0 and want to reset it back to frame zero */
+extern void Reset_Sprite_Frame_Counter(uint_fast32_t a);
+
 extern void Sync_video(void);
 extern void Close_Video(void);
 
