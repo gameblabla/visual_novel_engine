@@ -18,15 +18,26 @@
 #define MAX_JOYSTICK 16
 #define DEADZONE 4096
 
+#define BACKGROUND_IMG 0
+#define SPRITE_IMG 1
+#define STATIC_IMG 2
+
 static int current_internal_resolution_width = 0;
 static int current_internal_resolution_height = 0;
 
 static SDL_Window * window;
 static SDL_Renderer * renderer;
-static SDL_Texture * texture_library_memory[NUMBER_OF_IMAGES];
-static int sprites_w_[NUMBER_OF_IMAGES];
-static int sprites_h_[NUMBER_OF_IMAGES];
-static double sprites_current_frame_[NUMBER_OF_IMAGES];
+
+struct image_structure
+{
+	SDL_Texture * texture[NUMBER_OF_IMAGES];
+	int width[NUMBER_OF_IMAGES];
+	int height[NUMBER_OF_IMAGES];
+	double current_frame[NUMBER_OF_IMAGES];
+	
+	int width_frame[NUMBER_OF_IMAGES];
+};
+static struct image_structure img_struct[3];
 
 static Mix_Music* music;
 static Mix_Chunk* sfx_id[MAX_SFX];
@@ -170,26 +181,26 @@ uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big
 	return 0;
 }
 
-uint_fast8_t Load_Image(uint_fast32_t a, const char* directory)
+uint_fast8_t Load_Image(int p, int a, const char* directory)
 {
 	SDL_Surface* tmp;
 	
-	if (texture_library_memory[a] != NULL)
+	if (img_struct[p].texture[a] != NULL)
 	{
-		SDL_DestroyTexture(texture_library_memory[a]);
+		SDL_DestroyTexture(img_struct[p].texture[a]);
 	}
 	
 	tmp = IMG_Load(directory);
 	if (!tmp) return 1;
 	
-	sprites_w_[a] = tmp->w;
-	sprites_h_[a] = tmp->h;
-	sprites_current_frame_[a] = 0;
+	img_struct[p].width[a] = tmp->w;
+	img_struct[p].height[a] = tmp->h;
+	img_struct[p].current_frame[a] = 0;
 
 	SDL_SetColorKey(tmp, 1, SDL_MapRGB(tmp->format, 255, 0, 255));
 	SDL_SetSurfaceRLE(tmp, 1);
 	
-	texture_library_memory[a] = SDL_CreateTextureFromSurface(renderer, tmp);
+	img_struct[p].texture[a] = SDL_CreateTextureFromSurface(renderer, tmp);
 	SDL_FreeSurface(tmp);
 	
 	return 0;
@@ -226,23 +237,33 @@ void Close_All_Fonts(void)
 		TTF_CloseFont(font[a]);
 }
 
+void Put_background(int a)
+{
+	SDL_Rect position;
+	position.x = 0;
+	position.y = 0;
+	
+	position.w = current_internal_resolution_width;
+	position.h = current_internal_resolution_height;
 
-void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y, uint8_t alpha)
+	SDL_RenderCopy(renderer, img_struct[BACKGROUND_IMG].texture[a], NULL, &position);
+}
+
+void Put_image_top_left(int a, double top_left_x, double top_left_y, uint8_t alpha, double width, double height)
 {
 	if (alpha < 1) return;
 	
 	SDL_Rect position;
 	position.x = (int) (current_internal_resolution_width * top_left_x);
 	position.y = (int) (current_internal_resolution_height * top_left_y);
+	position.w = (int) (current_internal_resolution_width * width);
+	position.h = (int) (current_internal_resolution_height * height);
 	
-	position.w = sprites_w_[a];
-	position.h = sprites_h_[a];
-	
-	SDL_SetTextureAlphaMod( texture_library_memory[a], alpha );
-	SDL_RenderCopy(renderer, texture_library_memory[a], NULL, &position);
+	SDL_SetTextureAlphaMod( img_struct[STATIC_IMG].texture[a], alpha );
+	SDL_RenderCopy(renderer, img_struct[STATIC_IMG].texture[a], NULL, &position);
 }
 
-void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha)
+void Put_sprite_top_left(int a, double top_left_x, double top_left_y, int w_frame, int h_frame, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha, double width, double height)
 {
 	if (alpha < 1) return;
 
@@ -251,39 +272,48 @@ void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, 
 	
 	position.x = (int) (current_internal_resolution_width * top_left_x);
 	position.y = (int) (current_internal_resolution_height * top_left_y);
-	position.w = w;
-	position.h = h;
+	position.w = (int) (current_internal_resolution_width * width);
+	position.h = (int) (current_internal_resolution_height * height);
 	
-	if (!(sprites_current_frame_[a] >= (double)frame_end && loop == 0))
+	if (!(img_struct[SPRITE_IMG].current_frame[a] >= (double)frame_end && loop == 0))
 	{
-		if (sprites_current_frame_[a] < frame_end)
+		if (img_struct[SPRITE_IMG].current_frame[a] < frame_end)
 		{
 			/* 
 			 * This function is executed every frame of the display refresh rate hence the division by 1.
 			 * ( (Get_Refresh_rate * seconds) / (double)(frame_end-frame_start)) is the number of frame required to update each frame of the sprite
 			*/
-			sprites_current_frame_[a] += 1 / ( (Get_Refresh_rate * seconds) / (double)(frame_end-frame_start));
+			img_struct[SPRITE_IMG].current_frame[a] += 1 / ( (Get_Refresh_rate * seconds) / (double)(frame_end-frame_start));
 		}
 		
-		if ((sprites_current_frame_[a] >= (double)frame_end && loop == 1) || (sprites_current_frame_[a] < 0.0 && sprites_current_frame_[a] == 0.0))
+		if ((img_struct[SPRITE_IMG].current_frame[a] >= (double)frame_end && loop == 1) || (img_struct[SPRITE_IMG].current_frame[a] < 0.0 && img_struct[SPRITE_IMG].current_frame[a] == 0.0))
 		{
-			sprites_current_frame_[a] = (double)frame_start;
+			img_struct[SPRITE_IMG].current_frame[a] = (double)frame_start;
 		}
 	}
 
-	frame.x = (int)(sprites_current_frame_[a])*(w);
+	frame.x = 0;
+	frame.y = (int)(img_struct[SPRITE_IMG].current_frame[a])*(h_frame);
+	frame.w = w_frame;
+	frame.h = h_frame;
 	
-	frame.y = 0;
-	frame.w = w;
-	frame.h = h;
-	
-	SDL_SetTextureAlphaMod( texture_library_memory[a], alpha );
-	SDL_RenderCopy(renderer, texture_library_memory[a], &frame, &position);
+	SDL_SetTextureAlphaMod( img_struct[SPRITE_IMG].texture[a], alpha );
+	SDL_RenderCopy(renderer, img_struct[SPRITE_IMG].texture[a], &frame, &position);
 }
 
-void Reset_Sprite_Frame_Counter(uint_fast32_t a)
+void Reset_Sprite_Frame_Counter(int a)
 {
-	sprites_current_frame_[a] = 0;
+	img_struct[SPRITE_IMG].current_frame[a] = 0;
+}
+
+int Return_Sprite_Width(int a)
+{
+	return img_struct[SPRITE_IMG].width[a];
+}
+
+int Return_Sprite_Height(int a)
+{
+	return img_struct[SPRITE_IMG].height[a];
 }
 
 static uint_fast8_t Set_DPAD(uint_fast8_t value)
@@ -534,10 +564,11 @@ void Move_Position_Y(double* y, double yVel)
 
 void Close_Video(void)
 {
-	uint32_t i;
-	for (i=0;i<NUMBER_OF_IMAGES;i++) 
+	uint32_t a;
+	for (a=0;a<NUMBER_OF_IMAGES;a++) 
 	{
-		if (texture_library_memory[i]) SDL_DestroyTexture(texture_library_memory[i]);
+		if (img_struct[BACKGROUND_IMG].texture[a]) SDL_DestroyTexture(img_struct[BACKGROUND_IMG].texture[a]);
+		if (img_struct[SPRITE_IMG].texture[a]) SDL_DestroyTexture(img_struct[SPRITE_IMG].texture[a]);
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

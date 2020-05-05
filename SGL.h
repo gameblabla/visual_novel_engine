@@ -50,14 +50,24 @@ extern struct player_input Controller_Input;
 #define HELD 2
 #define RELEASED 3
 
+
+/* Macro for functions */
+
+#define Load_Background(a, b) Load_Image(0, a, b)
+#define Load_Sprite(a, b) Load_Image(1, a, b)
+
 /* Video */
 extern void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode);
-extern uint_fast8_t Load_Image(uint_fast32_t a, const char* directory);
-extern void Put_image_top_left(uint_fast32_t a, double top_left_x, double top_left_y, uint8_t alpha);
-extern void Put_sprite_top_left(uint_fast32_t a, double top_left_x, double top_left_y, int w, int h, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha);
+extern uint_fast8_t Load_Image(int p, int a, const char* directory);
+extern void Put_background(int a);
+extern void Put_image_top_left(int a, double top_left_x, double top_left_y, uint8_t alpha, double width, double height);
+extern void Put_sprite_top_left(int a, double top_left_x, double top_left_y, int w_frame, int h_frame, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha, double width, double height);
 
 /* Use in case you set the loop to 0 and want to reset it back to frame zero */
-extern void Reset_Sprite_Frame_Counter(uint_fast32_t a);
+extern void Reset_Sprite_Frame_Counter(int a);
+
+extern int Return_Sprite_Width(int a);
+extern int Return_Sprite_Height(int a);
 
 extern void Sync_video(void);
 extern void Close_Video(void);

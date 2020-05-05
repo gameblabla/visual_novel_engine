@@ -16,6 +16,7 @@ Done
 - Each picture/sprite can have their own opacity changed, useful for fade in/outs
 - Uses SDL2 meaning it's portable to other devices with an SDL2 port available.
 - Basic support for Gamepads and keyboard (treats keyboard as a big gamepad for now)
+- Images/Sprites/Background are scaled up according to relative values, not dependant on a certain resolution.
 
 TODO
 ====
