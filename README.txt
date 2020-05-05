@@ -21,8 +21,7 @@ Done
 TODO
 ====
 
-- Change font used for final version (it's proprietary and its license is restrictive)
-- Properly support Ultra-wide resolutions (still works for now but we need a better solution)
+- Properly support Ultra-wide resolutions (still works for now but we need a better solution for text)
 - SDL 1.2 backend for OpenDingux devices. (the abstraction works good enough for this)
-- PS3 port with NoRSX or GXM library ?
-- Other platform specific port (Sega 32X, Sony PSP, Xbox original, PS2 etc...)
+- PS3 port with NoRSX or GXM library ?  Other platform specific port (Sega 32X, Sony PSP, Xbox original, PS2 etc...)
+- Finish the actual game

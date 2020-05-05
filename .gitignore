@@ -1,2 +1,7 @@
 *.o
 *.elf
+*.dll
+*.exe
+*.zip
+*.cache
+*.log

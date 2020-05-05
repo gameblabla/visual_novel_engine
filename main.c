@@ -129,9 +129,7 @@ int main( int argc, char* argv[] )
 	(void) argc;
 	(void) argv;
 
-	time_t begin = time(NULL);
-	
-	Init_Video("Test game", 1280, 720, 0);
+	Init_Video("Test game", 1920, 1080, 0);
 	Init_sound();
 	
 	Load_Background(0, "assets/background.png");
@@ -185,12 +183,6 @@ int main( int argc, char* argv[] )
 		
 		Sync_video();
     }
-    
-
-	time_t end = time(NULL);
-
-	// calculate elapsed time by finding difference (end - begin)
-	printf("Time elpased is %ld seconds\n", (end - begin));
 
 	Unload_SFX();
 	Close_Video();
