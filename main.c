@@ -131,14 +131,13 @@ int main( int argc, char* argv[] )
 
 	time_t begin = time(NULL);
 	
-	charac[0].x = 0.0;
-	charac[1].x = 0.0;
-	
 	Init_Video("Test game", 1280, 720, 0);
 	Init_sound();
 	
 	Load_Background(0, "assets/background.png");
 	Load_Sprite(0, "assets/numbers.png");
+	Load_Picture(0, "assets/messagebox.png");
+	
 	Load_Text_Font(0, "assets/font.ttf", SMALL_FONT);
 	
 	Text_Progress(text_progress_value);
@@ -146,7 +145,7 @@ int main( int argc, char* argv[] )
     while(zero_toexit_program) 
     {
 		Put_background(0);
-		
+
 		for(i=0;i<2;i++)
 		{
 			if (charac[i].character_to_display_number >= 0)
@@ -170,6 +169,8 @@ int main( int argc, char* argv[] )
 				// Relative width & height (Not sprite itself, but how it will be stretched/displayed)
 				charac[i].width, charac[i].height);
 			}
+		
+			Put_image_top_left(0, 0.0, 1.0-0.33, 128, 1.0, 0.33);
 		}
 		
 		Draw_Text(0, 0.1, 0.72, text_line[0], 255, 255, 255);
