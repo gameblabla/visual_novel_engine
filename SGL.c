@@ -569,6 +569,7 @@ void Close_Video(void)
 	{
 		if (img_struct[BACKGROUND_IMG].texture[a]) SDL_DestroyTexture(img_struct[BACKGROUND_IMG].texture[a]);
 		if (img_struct[SPRITE_IMG].texture[a]) SDL_DestroyTexture(img_struct[SPRITE_IMG].texture[a]);
+		if (img_struct[STATIC_IMG].texture[a]) SDL_DestroyTexture(img_struct[STATIC_IMG].texture[a]);
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

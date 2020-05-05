@@ -55,10 +55,14 @@ extern struct player_input Controller_Input;
 
 #define Load_Background(a, b) Load_Image(0, a, b)
 #define Load_Sprite(a, b) Load_Image(1, a, b)
+#define Load_Picture(a, b) Load_Image(2, a, b)
 
 /* Video */
 extern void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode);
+
+/* WARNING : Use the macros instead of this function !!! */
 extern uint_fast8_t Load_Image(int p, int a, const char* directory);
+
 extern void Put_background(int a);
 extern void Put_image_top_left(int a, double top_left_x, double top_left_y, uint8_t alpha, double width, double height);
 extern void Put_sprite_top_left(int a, double top_left_x, double top_left_y, int w_frame, int h_frame, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha, double width, double height);
