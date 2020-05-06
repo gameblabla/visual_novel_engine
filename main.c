@@ -73,7 +73,6 @@ static void Text_Progress(uint32_t val)
 	snprintf(temp_line, sizeof(temp_line), "%s", story_text[val]);
 	
 	/* This will be useful for our script format. We get the position of each | in the array. */
-	
 	temp2[0] = strtok(temp_line,"|"); // Find the first |
 	//printf("temp2[i] %s\n", temp2[0]);
 	for(i=1;i<23;i++)
@@ -239,7 +238,7 @@ int main( int argc, char* argv[] )
 	(void) argc;
 	(void) argv;
 
-	Init_Video("Test game", 1280, 720, 0);
+	Init_Video("Test game", 1920, 1080, 0);
 	Init_sound();
 	
 	Load_Background(0, "assets/background.png");
@@ -397,6 +396,9 @@ int main( int argc, char* argv[] )
 				
 				if (Controller_Input.buttons[CROSS_BUTTON] == PRESSED)
 				{
+					special_action_trigger_choice = 0;
+					// Text_progress_value needs to be reset to whatever the user chose
+					text_progress_value = (uint32_t)move_choice_position[choice_input];
 					Text_Progress((uint32_t)move_choice_position[choice_input]);
 				}
 			break;
