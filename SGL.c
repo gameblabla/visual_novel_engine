@@ -41,6 +41,7 @@ static struct image_structure img_struct[3];
 
 static Mix_Music* music;
 static Mix_Chunk* sfx_id[MAX_SFX];
+static Mix_Chunk* voice_sfx;
 
 static SDL_GameController *pad[MAX_JOYSTICK];
 static SDL_Joystick *joy[MAX_JOYSTICK];
@@ -239,6 +240,9 @@ void Close_All_Fonts(void)
 
 void Put_background(int a)
 {
+	// -1 is pitch black. Since we are always clearing the screen black, ignore this function.
+	if (a < 0) return;
+	
 	SDL_Rect position;
 	position.x = 0;
 	position.y = 0;
@@ -246,6 +250,21 @@ void Put_background(int a)
 	position.w = current_internal_resolution_width;
 	position.h = current_internal_resolution_height;
 
+	SDL_SetTextureAlphaMod( img_struct[BACKGROUND_IMG].texture[a], 255 );
+	SDL_RenderCopy(renderer, img_struct[BACKGROUND_IMG].texture[a], NULL, &position);
+}
+
+void Put_background_override(int a, uint8_t alpha)
+{
+	if (alpha < 1) return;
+	SDL_Rect position;
+	position.x = 0;
+	position.y = 0;
+	
+	position.w = current_internal_resolution_width;
+	position.h = current_internal_resolution_height;
+
+	SDL_SetTextureAlphaMod( img_struct[BACKGROUND_IMG].texture[a], alpha );
 	SDL_RenderCopy(renderer, img_struct[BACKGROUND_IMG].texture[a], NULL, &position);
 }
 
@@ -314,6 +333,11 @@ int Return_Sprite_Width(int a)
 int Return_Sprite_Height(int a)
 {
 	return img_struct[SPRITE_IMG].height[a];
+}
+
+double Return_Alpha_tick(double seconds)
+{
+	return 1 / ( (Get_Refresh_rate * seconds) / 255);
 }
 
 static uint_fast8_t Set_DPAD(uint_fast8_t value)
@@ -602,7 +626,7 @@ void Play_Music(uint_fast32_t loop)
 	else Mix_PlayMusic(music, 0);
 }
 
-void Load_SFX(uint_fast32_t i, const char* directory)
+void Load_SFX(int32_t i, const char* directory)
 {
 	if (sfx_id[i])
 	{
@@ -612,12 +636,12 @@ void Load_SFX(uint_fast32_t i, const char* directory)
 	sfx_id[i] = Mix_LoadWAV(directory);
 }
 
-void Play_SFX(uint_fast32_t i)
+void Play_SFX(int32_t i)
 {
 	Mix_PlayChannel(-1, sfx_id[i], 0) ;
 }
 
-void Unload_SFX()
+void Unload_SFX(void)
 {
 	uint_fast32_t i;
 
@@ -628,5 +652,35 @@ void Unload_SFX()
 			Mix_FreeChunk(sfx_id[i]);
 			sfx_id[i] = NULL;
 		}
+	}
+}
+
+void Load_Voice(const char* directory)
+{
+	if (voice_sfx)
+	{
+		Mix_FreeChunk(voice_sfx);
+		voice_sfx = NULL;
+	}
+	voice_sfx = Mix_LoadWAV(directory);
+}
+
+void Play_Voice(void)
+{
+	/* Use the last channel for voices */
+	Mix_PlayChannel(15, voice_sfx, 0);
+}
+
+void Stop_Voice(void)
+{
+	if (voice_sfx) Mix_HaltChannel(15);
+}
+
+void Unload_Voice(void)
+{
+	if (voice_sfx)
+	{
+		Mix_FreeChunk(voice_sfx);
+		voice_sfx = NULL;
 	}
 }

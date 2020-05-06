@@ -17,10 +17,14 @@ Done
 - Uses SDL2 meaning it's portable to other devices with an SDL2 port available.
 - Basic support for Gamepads and keyboard (treats keyboard as a big gamepad for now)
 - Images/Sprites/Background are scaled up according to relative values, not dependant on a certain resolution.
+- Support for Music, sound effects and voices. (Voices are loaded on the fly by their nature, sound effects can be loaded forever in memory up to 128, music is only loaded once and changed if there are changes)
+- Branching paths (2 choices)
+- Smooth transitions, with characters disappearing/appearing, fading in and out.
 
 TODO
 ====
 
+- Use proper assets now that the game is closer to be done.
 - Properly support Ultra-wide resolutions (still works for now but we need a better solution for text)
 - SDL 1.2 backend for OpenDingux devices. (the abstraction works good enough for this)
 - PS3 port with NoRSX or GXM library ?  Other platform specific port (Sega 32X, Sony PSP, Xbox original, PS2 etc...)

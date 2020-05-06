@@ -14,6 +14,7 @@ extern uint32_t zero_toexit_program;
 struct player_input
 {
 	uint_fast8_t dpad[4];
+	/* Don't use timer_buttons in your code !*/
 	uint_fast8_t timer_dpad[4];
 	
 	uint_fast8_t buttons[MAX_BUTTONS];
@@ -64,6 +65,8 @@ extern void Init_Video(const char* title, int width, int height, uint_fast32_t s
 extern uint_fast8_t Load_Image(int p, int a, const char* directory);
 
 extern void Put_background(int a);
+extern void Put_background_override(int a, uint8_t alpha);
+
 extern void Put_image_top_left(int a, double top_left_x, double top_left_y, uint8_t alpha, double width, double height);
 extern void Put_sprite_top_left(int a, double top_left_x, double top_left_y, int w_frame, int h_frame, int frame_start, int frame_end, int loop, double seconds, uint8_t alpha, double width, double height);
 
@@ -72,6 +75,8 @@ extern void Reset_Sprite_Frame_Counter(int a);
 
 extern int Return_Sprite_Width(int a);
 extern int Return_Sprite_Height(int a);
+
+extern double Return_Alpha_tick(double seconds);
 
 extern void Sync_video(void);
 extern void Close_Video(void);
@@ -94,8 +99,13 @@ extern void Init_sound(void);
 extern void Clean_Music(void);
 extern void Load_Music(const char* directory);
 extern void Play_Music(uint_fast32_t loop);
-extern void Load_SFX(uint_fast32_t i, const char* directory);
-extern void Play_SFX(uint_fast32_t i);
+extern void Load_SFX(int32_t i, const char* directory);
+extern void Play_SFX(int32_t i);
 extern void Unload_SFX(void);
+
+extern void Load_Voice(const char* directory);
+extern void Play_Voice(void);
+extern void Unload_Voice(void);
+extern void Stop_Voice(void);
 
 #endif
