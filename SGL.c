@@ -112,24 +112,39 @@ static uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
 
 void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode)
 {
+	SDL_DisplayMode Mode;
+	int DisplayIndex;
 	uint32_t i;
-	uint32_t real_window_mode;
 	
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO);
 	
 	switch(screen_mode)
 	{
 		case 0:
-			real_window_mode = SDL_WINDOW_SHOWN;
-			window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, width, height, real_window_mode);
+			/* Set up a window that is resizable. It is set to the native resolution by default. */
+			window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 		break;
 		case 1:
-			real_window_mode = SDL_WINDOW_BORDERLESS;
-			window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 0, 0, real_window_mode);
+			/* Set an empty window. GetDesktopDisplayMode requires it */
+			window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, 0);
+			DisplayIndex = SDL_GetWindowDisplayIndex(window);
+			SDL_GetDesktopDisplayMode(DisplayIndex, &Mode);
+			
+			/* We then set the borderless window to the desktop's resolution. 
+			(It won't be configurable because well, that's the whole point of Borderless mode right ?) */
+			window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Mode.w, Mode.h, SDL_WINDOW_BORDERLESS);
 		break;
 		case 2:
-			real_window_mode = SDL_WINDOW_FULLSCREEN;
-			window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, 0, 0, real_window_mode);
+			/* Fullscreen desktop mode. For some reasons Windows 10 hates this.
+			 * SDL_WINDOW_FULLSCREEN_DESKTOP was prompting a Windows 10 error so maybe detecting the
+			 * resolution and then forcing fullscreen with the detected resolution will fix that.
+			 * We need a better solution than that but SDL does not handle it gracefully...
+			 * There seems to be no way of setting a width/height to a fullscreen resolution.
+			 *  */
+			window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, 0);
+			DisplayIndex = SDL_GetWindowDisplayIndex(window);
+			SDL_GetDesktopDisplayMode(DisplayIndex, &Mode);
+			window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Mode.w, Mode.h, SDL_WINDOW_FULLSCREEN);
 		break;
 	}
 	
@@ -137,7 +152,7 @@ void Init_Video(const char* title, int width, int height, uint_fast32_t screen_m
 	FPS_sleep = 1000.0 / Get_Refresh_rate;
 	printf("Refresh rate is %d Hz\n", Get_Refresh_rate);
 	
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	SDL_RenderSetLogicalSize(renderer, width, height);
 	
 	/* Clear everything on screen */
@@ -383,15 +398,19 @@ static void Controller_update(void)
 				switch(event.key.keysym.scancode)
 				{
 					case SDL_SCANCODE_UP:
+					case SDL_SCANCODE_W:
 					Controller_Input.dpad[0] = Set_DPAD(Controller_Input.dpad[0]);
 					break;
 					case SDL_SCANCODE_DOWN:
+					case SDL_SCANCODE_S:
 					Controller_Input.dpad[1] = Set_DPAD(Controller_Input.dpad[1]);
 					break;
 					case SDL_SCANCODE_LEFT:
+					case SDL_SCANCODE_A:
 					Controller_Input.dpad[2] = Set_DPAD(Controller_Input.dpad[2]);
 					break;
 					case SDL_SCANCODE_RIGHT:
+					case SDL_SCANCODE_D:
 					Controller_Input.dpad[3] = Set_DPAD(Controller_Input.dpad[3]);
 					break;
 					case SDL_SCANCODE_SPACE:
@@ -411,15 +430,19 @@ static void Controller_update(void)
 				switch(event.key.keysym.scancode)
 				{
 					case SDL_SCANCODE_UP:
+					case SDL_SCANCODE_W:
 					Controller_Input.dpad[0] = RELEASED;
 					break;
 					case SDL_SCANCODE_DOWN:
+					case SDL_SCANCODE_S:
 					Controller_Input.dpad[1] = RELEASED;
 					break;
 					case SDL_SCANCODE_LEFT:
+					case SDL_SCANCODE_A:
 					Controller_Input.dpad[2] = RELEASED;
 					break;
 					case SDL_SCANCODE_RIGHT:
+					case SDL_SCANCODE_D:
 					Controller_Input.dpad[3] = RELEASED;
 					break;
 					case SDL_SCANCODE_SPACE:

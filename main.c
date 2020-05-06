@@ -238,7 +238,7 @@ int main( int argc, char* argv[] )
 	(void) argc;
 	(void) argv;
 
-	Init_Video("Test game", 1920, 1080, 0);
+	Init_Video("Test game", 1280, 720, 2);
 	Init_sound();
 	
 	Load_Background(0, "assets/background.png");
