@@ -1,0 +1,15 @@
+CC = x86_64-w64-mingw32-gcc
+CXX = x86_64-w64-mingw32-g++
+
+CXXFLAGS = -O0 -g -Iinclude/QtWidgets -Iinclude -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
+LDFLAGS = -lgcc -lmingw32 -Llib -lQt5Bootstrap -lQt5Widgets -lQt5Core -lQt5Gui
+OUTPUT = example.exe
+
+SOURCES = main.cpp window.cpp moc_window.cpp
+OBJS = ${SOURCES:.c=.o}
+
+${OUTPUT}:${OBJS}
+	${CXX} ${CXXFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS}
+	
+clean:
+	rm *.o ${OUTPUT}

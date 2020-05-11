@@ -39,6 +39,9 @@ It is a special character also used in other languages like HTML.
 
 #include "array.h"
 
+#ifdef LOAD_TEXT_FILE
+char story_text[5192][256];
+#else
 char story_text[5192][256] = {
 	{"0|0|-1|0|0|0|0|0|0|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|The year is 2008.\nI was at home watching some TV shows.\nYou know, the usual boring stuff..."},
 	{"0|0|-1|0|0|0|0|0|0|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|Suddenly however, i heard a loud knock at my door.\nI was a little scared but did walk towards my door."},
@@ -51,3 +54,4 @@ char story_text[5192][256] = {
 	{"1|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|Man :\nCan you follow us ?"},
 	{"1|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|1|0|2|-1|-1|-1|Follow him ?\nYES\nNO"},
 };
+#endif

@@ -68,7 +68,7 @@ static void Text_Progress(uint32_t val)
 	
 	pch = strrchr(story_text[val],'\n');
 	if (pch) text_occurance_u[1] = (unsigned long)(pch-story_text[val])+1;
-	
+
 	// We need to make a copy because it won't work otherwise
 	snprintf(temp_line, sizeof(temp_line), "%s", story_text[val]);
 	
@@ -99,7 +99,7 @@ static void Text_Progress(uint32_t val)
 	
 	current_background_id = (int)strtoimax(temp2[0], NULL, 10);
 	special_action_trigger = (int)strtoimax(temp2[1], NULL, 10);
-
+	
 	for(i=0;i<2;i++)
 	{
 		charac[i].character_to_display_number = (int)strtoimax(temp2[2+(i*7)], NULL, 10);
@@ -114,7 +114,6 @@ static void Text_Progress(uint32_t val)
 				charac[i].alpha = 254;
 			}
 		}
-		
 		charac[i].character_to_display_number_noloop_once = (int)strtoimax(temp2[3+(i*7)], NULL, 10);
 		charac[i].character_end_frame = (int)strtoimax(temp2[4+(i*7)], NULL, 10);
 		charac[i].character_end_frame_noloop_once = (int)strtoimax(temp2[5+(i*7)], NULL, 10);
@@ -231,6 +230,7 @@ static void Voice_Slot_Play(int32_t a)
 	Play_Voice();
 }
 
+
 int main( int argc, char* argv[] )
 {
 	uint32_t i;
@@ -238,7 +238,7 @@ int main( int argc, char* argv[] )
 	(void) argc;
 	(void) argv;
 
-	Init_Video("Test game", 1280, 720, 2);
+	Init_Video("Test game", 1280, 720, 0);
 	Init_sound();
 	
 	Load_Background(0, "assets/background.png");
@@ -250,6 +250,65 @@ int main( int argc, char* argv[] )
 	Load_Picture(0, "assets/messagebox.png");
 	
 	Load_Text_Font(0, "assets/font.ttf", SMALL_FONT);
+	
+#ifdef LOAD_TEXT_FILE
+	FILE* fp;
+	char line[256], newline[256];
+	uint_fast32_t lineNum = 0;
+	uint_fast8_t count = 0;
+	unsigned long a = 0;
+	
+	memset(line, 0, 256);
+	
+	fp = fopen("story.txt", "rb");
+	
+	while (fgets(line, sizeof(line), fp))
+	{
+		char *arg = strchr(line, '\n');
+		
+		count = 0;
+		a = 0;
+		memset(newline, 0, 256);
+
+		for(i=0;i<256;i++)
+		{
+			if (line[i] == '\\' && count < 2)
+			{
+				newline[a] = '\n';
+				a++;
+				i+=1;
+				count++;
+			}
+			else
+			{
+				if (line[i] == 10 && count > 1)
+				{
+					a++;
+					newline[a] = 0;
+					i = 256;
+					break;
+				}
+				else
+				{
+					newline[a] = line[i];
+					a++;
+				}
+			}
+		}
+		snprintf(story_text[lineNum], 256, "%s", newline);
+
+		++lineNum;
+
+		if (!arg) {
+			continue;
+		}
+
+		*arg = '\0';
+		arg++;
+	}
+	fclose(fp);
+	
+#endif
 	
 	Text_Progress(text_progress_value);
 	

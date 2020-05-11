@@ -6,3 +6,12 @@
 *.cache
 *.log
 *.dxvk-cache
+*.stash
+story.txt
+editor_qt5/plugins
+editor_qt5/include
+editor_qt5/lib
+editor_qt5/qt5
+editor_qt5/moc_window.cpp
+editor_qt5/moc_predefs.h
+editor_qt5/output.txt
