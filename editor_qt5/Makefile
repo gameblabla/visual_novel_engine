@@ -131,6 +131,8 @@ DIST          = /usr/lib/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_vulkan_support_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_widgets.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_widgets_private.pri \
+		/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras.pri \
+		/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xkbcommon_support_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xml.pri \
@@ -246,6 +248,8 @@ Makefile: qt5.pro /usr/lib/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/qt5/mkspecs
 		/usr/lib/qt5/mkspecs/modules/qt_lib_vulkan_support_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_widgets.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_widgets_private.pri \
+		/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras.pri \
+		/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xkbcommon_support_private.pri \
 		/usr/lib/qt5/mkspecs/modules/qt_lib_xml.pri \
@@ -350,6 +354,8 @@ Makefile: qt5.pro /usr/lib/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/qt5/mkspecs
 /usr/lib/qt5/mkspecs/modules/qt_lib_vulkan_support_private.pri:
 /usr/lib/qt5/mkspecs/modules/qt_lib_widgets.pri:
 /usr/lib/qt5/mkspecs/modules/qt_lib_widgets_private.pri:
+/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras.pri:
+/usr/lib/qt5/mkspecs/modules/qt_lib_x11extras_private.pri:
 /usr/lib/qt5/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri:
 /usr/lib/qt5/mkspecs/modules/qt_lib_xkbcommon_support_private.pri:
 /usr/lib/qt5/mkspecs/modules/qt_lib_xml.pri:

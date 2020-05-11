@@ -10,17 +10,7 @@
 #include <sys/types.h>
 
 #include "SGL.h"
-
-#define NUMBER_OF_IMAGES 1024
-#define MAX_SFX 128
-#define NUMBER_OF_FONTS 64
-
-#define MAX_JOYSTICK 16
-#define DEADZONE 4096
-
-#define BACKGROUND_IMG 0
-#define SPRITE_IMG 1
-#define STATIC_IMG 2
+#include "SGL_defines.h"
 
 static int current_internal_resolution_width = 0;
 static int current_internal_resolution_height = 0;
@@ -177,9 +167,34 @@ void Init_Video(const char* title, int width, int height, uint_fast32_t screen_m
 		Controller_Input.dpad[i] = 0;
 }
 
-uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big)
+uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory)
 {
+	char * pch;
 	int font_size;
+	uint32_t big = 0;
+	unsigned long lengh_image = 0;
+	unsigned long character_after = 0;
+	
+	if (!directory) return 0;
+	
+	/* Oh boy, i believe i have the vapors !
+	 * We use double $$ in a sucession as to know 
+	 * whenever our text file should be tagged as big or not.
+	 * If this turns out to be a bad idea, then i might revert back to a descriptor.
+	 * */
+	pch = strrchr(directory,'$');
+	if (pch != NULL)
+	{
+			lengh_image = strlen(directory);
+			character_after = (unsigned long)(pch-(directory)+1)+1;
+			if (!(character_after > lengh_image))
+			{
+				if (directory[character_after] == '$')
+				{
+					big = 1;
+				}
+			}
+	}
 	
 	/* Hack for Ultra & Wider aspect ratios */
 	/* TODO : Properly fix this according to the current aspect ratio instead of fixed magic numbers */
@@ -191,15 +206,19 @@ uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory, uint32_t big
 	{
 		font_size = big ? current_internal_resolution_width / 10 : current_internal_resolution_width / 30;
 	}
-	
+
 	font[a] = TTF_OpenFont(directory, font_size);
+
+	if (!font[a]) return 0;
 	
-	return 0;
+	return 1;
 }
 
-uint_fast8_t Load_Image(int p, int a, const char* directory)
+uint_fast8_t Load_Image(uint_fast32_t p, uint_fast32_t a, const char* directory)
 {
 	SDL_Surface* tmp;
+	
+	if (!directory) return 0;
 	
 	if (img_struct[p].texture[a] != NULL)
 	{
@@ -207,7 +226,7 @@ uint_fast8_t Load_Image(int p, int a, const char* directory)
 	}
 	
 	tmp = IMG_Load(directory);
-	if (!tmp) return 1;
+	if (!tmp) return 0;
 	
 	img_struct[p].width[a] = tmp->w;
 	img_struct[p].height[a] = tmp->h;
@@ -219,7 +238,7 @@ uint_fast8_t Load_Image(int p, int a, const char* directory)
 	img_struct[p].texture[a] = SDL_CreateTextureFromSurface(renderer, tmp);
 	SDL_FreeSurface(tmp);
 	
-	return 0;
+	return 1;
 }
 
 
@@ -649,7 +668,7 @@ void Play_Music(uint_fast32_t loop)
 	else Mix_PlayMusic(music, 0);
 }
 
-void Load_SFX(int32_t i, const char* directory)
+uint_fast32_t Load_SFX(uint_fast32_t i, const char* directory)
 {
 	if (sfx_id[i])
 	{
@@ -657,9 +676,11 @@ void Load_SFX(int32_t i, const char* directory)
 		sfx_id[i] = NULL;
 	}
 	sfx_id[i] = Mix_LoadWAV(directory);
+	if (!sfx_id[i]) return 0;
+	return 1;
 }
 
-void Play_SFX(int32_t i)
+void Play_SFX(uint_fast32_t i)
 {
 	Mix_PlayChannel(-1, sfx_id[i], 0) ;
 }

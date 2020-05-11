@@ -39,19 +39,5 @@ It is a special character also used in other languages like HTML.
 
 #include "array.h"
 
-#ifdef LOAD_TEXT_FILE
-char story_text[5192][256];
-#else
-char story_text[5192][256] = {
-	{"0|0|-1|0|0|0|0|0|0|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|The year is 2008.\nI was at home watching some TV shows.\nYou know, the usual boring stuff..."},
-	{"0|0|-1|0|0|0|0|0|0|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|Suddenly however, i heard a loud knock at my door.\nI was a little scared but did walk towards my door."},
-	{"1|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|When i opened it,\nthere were 3 muscular looking men in front of me."},
-	{"1|0|0|0|9|0|900|40|65|1|0|9|0|900|40|65|0|0|0|-1|-1|-1|Man :\nHello sir, how are you doing ?"},
-	{"1|0|0|0|9|0|900|40|65|1|0|9|0|900|40|65|0|0|0|-1|-1|-1|Me :\nI'm fine. What brings you here ?"},
-	{"0|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|Suddenly however, i heard a loud knock at my door.\nI was a little scared but did walk towards my door."},
-	{"1|0|0|0|9|0|900|40|65|1|0|9|0|900|40|65|0|0|0|-1|-1|-1|Me :\nI'm fine. What brings you here ?"},
-	{"0|0|-1|0|0|0|0|0|0|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|The year is 2008.\nI was at home watching some TV shows.\nYou know, the usual boring stuff..."},
-	{"1|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|0|0|0|-1|-1|-1|Man :\nCan you follow us ?"},
-	{"1|0|0|0|9|0|900|40|65|-1|0|0|0|0|0|0|1|0|2|-1|-1|-1|Follow him ?\nYES\nNO"},
-};
-#endif
+struct assets_data game_assets[7];
+char story_text[MAX_TEXT_ENTRIES_SCRIPT][MAX_TEXT_LENGH_SCRIPT];

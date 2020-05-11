@@ -20,6 +20,7 @@ Done
 - Support for Music, sound effects and voices. (Voices are loaded on the fly by their nature, sound effects can be loaded forever in memory up to 128, music is only loaded once and changed if there are changes)
 - Branching paths (2 choices)
 - Smooth transitions, with characters disappearing/appearing, fading in and out.
+- Loading text and commands from text files. (I will study encrypting the text file or come up with my own data format in the future to avoid spoilers)
 
 TODO
 ====
