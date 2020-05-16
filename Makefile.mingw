@@ -1,11 +1,11 @@
 CC = x86_64-w64-mingw32-gcc
 
-CFLAGS = -Wall -Werror  -O0 -g -std=gnu99
+CFLAGS = -Wall -Werror  -O2 -std=gnu99
 LDFLAGS = -static -Wl,--start-group -lshlwapi -lopusfile -lopus -lFLAC -ltiff -lvorbisfile -lzstd -llzma -lwebp -lmpg123 -ljpeg -logg -lvorbis -lgcc -lrpcrt4  -lm -lmingw32 -lSDL2_image -lgraphite2  -lSDL2_mixer -lSDL2 -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -lsetupapi -lSDL2_ttf -lfreetype -lz -lpng16 -lharfbuzz -lstdc++ -Wl,--end-group
 
 OUTPUT = example.exe
 
-SOURCES = main.c SGL.c array.c
+SOURCES = src/SGL.c src/array.c src/main.c src/text_vn.c
 OBJS = ${SOURCES:.c=.o}
 
 ${OUTPUT}:${OBJS}

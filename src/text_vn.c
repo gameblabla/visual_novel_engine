@@ -45,7 +45,7 @@ static uint_fast32_t Load_Assets_Date(const char* path, struct assets_data* ex)
 	fp = fopen(path, "r");
 	if (!fp)
 	{
-		fprintf(stderr, "File %s is missing !\n", path);
+		printf("File %s is missing !\n", path);
 		return 0;
 	}
 	
@@ -191,6 +191,11 @@ uint8_t Load_Text_Files(void)
 			default:
 			break;
 		}
+	}
+	
+	if (!Load_Titlescreen("assets/titlescreen.png"))
+	{
+		return 0;
 	}
 
 	/* 1 means sucess */

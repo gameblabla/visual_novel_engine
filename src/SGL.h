@@ -63,6 +63,9 @@ extern void Init_Video(const char* title, int width, int height, uint_fast32_t s
 
 /* WARNING : Use the macros instead of this function !!! */
 extern uint_fast8_t Load_Image(uint_fast32_t p, uint_fast32_t a, const char* directory);
+extern uint_fast8_t Load_Titlescreen(const char* directory);
+
+extern void Put_titlescreen(void);
 
 extern void Put_background(int a);
 extern void Put_background_override(int a, uint8_t alpha);

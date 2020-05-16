@@ -18,6 +18,8 @@ static int current_internal_resolution_height = 0;
 static SDL_Window * window;
 static SDL_Renderer * renderer;
 
+static SDL_Texture * titlescreen_data;
+
 struct image_structure
 {
 	SDL_Texture * texture[NUMBER_OF_IMAGES];
@@ -214,6 +216,29 @@ uint_fast8_t Load_Text_Font(uint_fast32_t a, const char* directory)
 	return 1;
 }
 
+uint_fast8_t Load_Titlescreen(const char* directory)
+{
+	SDL_Surface* tmp;
+	
+	if (!directory) return 0;
+	
+	if (titlescreen_data != NULL)
+	{
+		SDL_DestroyTexture(titlescreen_data);
+	}
+	
+	tmp = IMG_Load(directory);
+	if (!tmp) return 0;
+
+	SDL_SetColorKey(tmp, 1, SDL_MapRGB(tmp->format, 255, 0, 255));
+	SDL_SetSurfaceRLE(tmp, 1);
+	
+	titlescreen_data = SDL_CreateTextureFromSurface(renderer, tmp);
+	SDL_FreeSurface(tmp);
+	
+	return 1;
+}
+
 uint_fast8_t Load_Image(uint_fast32_t p, uint_fast32_t a, const char* directory)
 {
 	SDL_Surface* tmp;
@@ -270,6 +295,17 @@ void Close_All_Fonts(void)
 	uint_fast32_t a;
 	for(a=0;a<NUMBER_OF_FONTS;a++)
 		TTF_CloseFont(font[a]);
+}
+
+void Put_titlescreen(void)
+{
+	SDL_Rect position;
+	position.x = 0;
+	position.y = 0;
+	
+	position.w = current_internal_resolution_width;
+	position.h = current_internal_resolution_height;
+	SDL_RenderCopy(renderer, titlescreen_data, NULL, &position);
 }
 
 void Put_background(int a)
