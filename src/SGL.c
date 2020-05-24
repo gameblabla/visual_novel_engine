@@ -470,6 +470,8 @@ static void Controller_update(void)
 					break;
 					case SDL_SCANCODE_SPACE:
 					case SDL_SCANCODE_KP_SPACE:
+					case SDL_SCANCODE_RETURN:
+					case SDL_SCANCODE_KP_ENTER:
 						if (Controller_Input.buttons[CROSS_BUTTON] != HELD)
 						Controller_Input.buttons[CROSS_BUTTON] = PRESSED;
 					break;
@@ -502,6 +504,8 @@ static void Controller_update(void)
 					break;
 					case SDL_SCANCODE_SPACE:
 					case SDL_SCANCODE_KP_SPACE:
+					case SDL_SCANCODE_RETURN:
+					case SDL_SCANCODE_KP_ENTER:
 						Controller_Input.buttons[CROSS_BUTTON] = RELEASED;
 					break;
 					default:

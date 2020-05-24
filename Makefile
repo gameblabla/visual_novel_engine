@@ -12,5 +12,5 @@ ${OUTPUT}:${OBJS}
 	${CC} ${CFLAGS} -o ${OUTPUT} ${OBJS} ${LDFLAGS}
 	
 clean:
-	rm *.o
+	rm src/*.o
 	rm ${OUTPUT}
