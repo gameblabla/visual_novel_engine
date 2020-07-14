@@ -22,6 +22,6 @@ struct assets_data
 	uint_fast32_t data_entries;
 };
 extern struct assets_data game_assets[7];
-extern char story_text[MAX_TEXT_ENTRIES_SCRIPT][MAX_TEXT_LENGH_SCRIPT];
+extern char story_text[MAX_TEXT_ENTRIES_SCRIPT][MAX_TEXT_LENGH_SCRIPT+8];
 
 #endif

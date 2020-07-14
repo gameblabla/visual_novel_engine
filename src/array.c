@@ -40,4 +40,5 @@ It is a special character also used in other languages like HTML.
 #include "array.h"
 
 struct assets_data game_assets[7];
-char story_text[MAX_TEXT_ENTRIES_SCRIPT][MAX_TEXT_LENGH_SCRIPT];
+/* The +8 is to avoid trucating and also silencing the compiler, hopefully... */
+char story_text[MAX_TEXT_ENTRIES_SCRIPT][MAX_TEXT_LENGH_SCRIPT+8];

@@ -258,13 +258,13 @@ void Text_Progress(uint32_t val)
 	for(i=0;i<2;i++)
 	{
 		charac[i].character_to_display_number = (int)strtoimax(temp2[2+(i*7)], NULL, 10);
-		if (charac[i].character_to_display_number >= 0)
+		if (charac[i].character_to_display_number > 0)
 		{
 			characters_on_screen_number++;
 		}
 		else
 		{
-			if (previous_charac[i].character_to_display_number >= 0 && val != 0)
+			if (previous_charac[i].character_to_display_number > 0 && val != 0)
 			{
 				charac[i].alpha = 254;
 			}
@@ -303,11 +303,20 @@ void Text_Progress(uint32_t val)
 	}
 	
 	/* If we go from 1 or several characters to zero, assuming we are changing the entire scene. */
-	if (characters_on_screen_number == 0 && previous_characters_on_screen_number > 0)
+	else if (characters_on_screen_number == 0 && previous_characters_on_screen_number > 0)
 	{
 		for(i=0;i<2;i++)
 		{
 			charac[i].alpha = 254;
+		}
+	}
+	/* If there's nothing on-screen */
+	else if (characters_on_screen_number == 0 && previous_characters_on_screen_number== 0)
+	{
+		for(i=0;i<2;i++)
+		{
+			charac[i].alpha = 0;
+			charac[i].character_to_display_number = 0;
 		}
 	}
 	
@@ -357,7 +366,9 @@ void Text_Progress(uint32_t val)
 	
 	/* This parses the final result to the final text array */
 	for(i=0;i<number_of_text_lines;i++)
+	{
 		snprintf(text_line[i], MAX_TEXT_LENGH_SCRIPT, "%s", temp[i]);
+	}
 		
 	Unload_Voice();
 }
