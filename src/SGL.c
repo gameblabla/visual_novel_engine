@@ -102,11 +102,12 @@ static uint32_t SDLGetWindowRefreshRate(SDL_Window *Window)
     return (uint32_t)Mode.refresh_rate;
 }
 
-void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode)
+void Init_Video(const char* title, int width, int height, uint_fast32_t screen_mode, uint_fast32_t sync_mode)
 {
 	SDL_DisplayMode Mode;
 	int DisplayIndex;
 	uint32_t i;
+	int vsync_flag = 0;
 	
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO);
 	
@@ -140,11 +141,77 @@ void Init_Video(const char* title, int width, int height, uint_fast32_t screen_m
 		break;
 	}
 	
+	switch(sync_mode)
+	{
+		default:
+			// No Vsync but with FPS limit
+			lockfps_game = 1;
+			vsync_flag = 0;
+		break;
+		case 1:
+			// Vsync, no FPS lock
+			lockfps_game = 0;
+			vsync_flag = 0;
+		break;
+		case 2:
+			// Vsync with FPS lock
+			lockfps_game = 0;
+			vsync_flag = 0;
+		break;
+		case 3:
+			// No Vsync but Freesync
+			/* Make sure to have proper drivers, especially on Linux.
+			 * Note that you may have to force disable vsync if you want force adaptive sync
+			 * accross everything :
+			 * export adaptive_sync=true
+			 * export vblank_mode=false
+			 * 
+			 * You can put this either under your .drirc file or export them as variables.
+			 * 
+			 * On Windows, this should work out of the box since Windows 7 as long as the drivers support it.
+			 * Note that you will also need to run the game fullscren to take advantage of Gsync or freesync, like on Linux.
+			 * On Nvidia, it's possible to also enable gsync for windowed mode as well, although i'm not sure if its recommended.
+			 * 
+			 * Of course since we don't have vsync, we should use our own FPS lock instead.
+			 */
+			lockfps_game = 1;
+			vsync_flag = 0;
+			
+			if (screen_mode != 2)
+			{
+				printf("Warning : Windowed Freesync/Gsync might work on Windows but not on Linux !!!\n");
+			}
+			
+			if (!SDL_GL_SetSwapInterval(-1))
+			{
+				printf("Freesync not supported or enabled. Renabling vsync since freesync isn't available.\n");
+				vsync_flag = SDL_RENDERER_PRESENTVSYNC;
+			}
+		break;
+		case 4:
+			// Vsync + Freesync (Usually breaks and there should be no reason to use this)
+			lockfps_game = 0;
+			vsync_flag = SDL_RENDERER_PRESENTVSYNC;
+			
+			if (screen_mode != 2)
+			{
+				printf("Warning : Windowed Freesync/Gsync might work on Windows but not on Linux !!!\n");
+			}
+			
+			if (!SDL_GL_SetSwapInterval(-1))
+			{
+				printf("Freesync not supported or enabled. Renabling Lock FPS again for that reason.\n");
+				lockfps_game = 1;
+			}
+		break;
+		
+	}
+	
 	Get_Refresh_rate = SDLGetWindowRefreshRate(window);
 	FPS_sleep = 1000.0 / Get_Refresh_rate;
 	printf("Refresh rate is %d Hz\n", Get_Refresh_rate);
 	
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | vsync_flag);
 	SDL_RenderSetLogicalSize(renderer, width, height);
 	
 	/* Clear everything on screen */

@@ -260,7 +260,7 @@ int main( int argc, char* argv[] )
 	(void) argc;
 	(void) argv;
 
-	Init_Video("Test game", 1280, 720, 0);
+	Init_Video("Test game", 1920, 1080, 2, 3);
 	Init_sound();
 	
 	err = Load_Text_Files();
